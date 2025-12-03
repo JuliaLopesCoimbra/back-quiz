@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from repository.user_repository import UserRepository
+from repository.user_repository import UserRepository, UserEntranceRepository
 from config.security import create_access_token
 from fastapi import HTTPException, status
 
@@ -16,6 +16,23 @@ class UserService:
 
         user = UserRepository.create(db, name, email)
 
+        token = create_access_token({"sub": str(user.id)})
+
+        return user, token
+
+    @staticmethod
+    def create_or_enter_user(db: Session, name: str, email: str):
+        # Se já existe, não barrar
+        user = UserRepository.get_by_email(db, email)
+
+        if not user:
+            # Criar novo usuário
+            user = UserRepository.create(db, name, email)
+
+        # Registrar entrada
+        UserEntranceRepository.create_entrance(db, user.id)
+
+        # Gerar token
         token = create_access_token({"sub": str(user.id)})
 
         return user, token

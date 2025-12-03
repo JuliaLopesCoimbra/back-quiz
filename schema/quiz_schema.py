@@ -29,3 +29,10 @@ class QuizResponse(BaseModel):
 class UserAnswerRequest(BaseModel):
     question_id: int
     answers: List[int]
+
+class QuestionAnswer(BaseModel):
+    question_id: int
+    answers: List[int]
+
+class QuizAnswerBatchRequest(BaseModel):
+    answers: List[QuestionAnswer]

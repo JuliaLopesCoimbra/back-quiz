@@ -5,7 +5,7 @@ import os
 # Exemplo de URL do MySQL (troque pelos seus dados)
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "mysql+pymysql://root:1234@localhost:3306/quizdb"
+    "mysql+pymysql://root:10203011Julia@localhost:3306/quizdb"
 )
 
 engine = create_engine(

@@ -17,3 +17,24 @@ class QuizController:
             question_id=body.question_id,
             answers=body.answers
         )
+
+    @staticmethod
+    def finish_quiz(quiz_id: int, user_id: int, db: Session):
+        return QuizService.finish_quiz(db, user_id, quiz_id)
+
+    @staticmethod
+    def save_answers_batch(quiz_id, attempt_id, user_id, body, db):
+        return QuizService.save_answers_batch(
+            db=db,
+            attempt_id=attempt_id,
+            user_id=user_id,
+            data=body.answers
+        )
+
+    def start_attempt(quiz_id, user_id, db):
+        attempt = QuizService.start_attempt(db, user_id, quiz_id)
+        return {"attempt_id": attempt.id}
+
+    def finish_attempt(quiz_id, attempt_id, user_id, db):
+        return QuizService.finish_attempt(db, attempt_id, user_id)
+

@@ -54,3 +54,14 @@ ANSWER_TO_WORLD = {
     "Válido tudo com dados": "Conversões Otimizadas",
     "Testo até funcionar": "Black Friday+"
 }
+WORLD_TO_ID = {
+    "Customer Match": 1,
+    "Broad Match + AI Max": 2,
+    "Entrepreneur": 3,
+    "Creator": 4,
+    "Essentials": 5,
+    "Branding": 6,
+    "Ecommerce": 7,
+    "Performance": 8,
+    "Black Friday+": 9
+}
