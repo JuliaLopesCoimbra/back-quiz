@@ -56,12 +56,14 @@ ANSWER_TO_WORLD = {
 }
 WORLD_TO_ID = {
     "Customer Match": 1,
-    "Broad Match + AI Max": 2,
-    "Entrepreneur": 3,
-    "Creator": 4,
-    "Essentials": 5,
-    "Branding": 6,
-    "Ecommerce": 7,
-    "Performance": 8,
-    "Black Friday+": 9
+    "Conversões Otimizadas": 2,
+    "Ponte Web-App": 3,
+    "Performance Max": 4,
+    "Demand Gen": 5,
+    "VRC + VVC": 6,
+    "Broad Match + AI Max": 7,
+    "Black Friday+": 8,
+    "VBB": 9,
+    "Ads Demo Slam": 10
 }
+
