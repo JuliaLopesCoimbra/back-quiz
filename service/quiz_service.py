@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from repository.quiz_repository import QuizRepository
-from fastapi import HTTPException, status
-from service.quiz_rules import WORLD_ORDER, ANSWER_TO_WORLD, WORLD_TO_ID
+from fastapi import HTTPException
+from service.quiz_rules import ANSWER_TO_WORLD, WORLD_TO_ID
 
 
 class QuizService:
@@ -48,38 +48,43 @@ class QuizService:
 
         for ans in user_answers:
             answer_text = ans.answer.text
-            world = ANSWER_TO_WORLD.get(answer_text)
-            if world:
-                world_points[world] = world_points.get(world, 0) + 1
+            worlds = ANSWER_TO_WORLD.get(answer_text, [])
+
+            # soma 1 ponto para cada mundo possível
+            for w in worlds:
+                world_points[w] = world_points.get(w, 0) + 1
 
         # Encontrar a maior pontuação
         max_points = max(world_points.values())
         empatados = [w for w, p in world_points.items() if p == max_points]
 
-        # Desempate pela ordem REAL das respostas do usuário
-        #
-        # A ordem está natural na tabela user_answers
-        # pois cada insert foi feito na ordem em que ele respondeu.
-        #
+        # Desempate pela ORDEM REAL das respostas do usuário
+        winner = None
+
         for ans in user_answers:
             answer_text = ans.answer.text
-            mundo = ANSWER_TO_WORLD.get(answer_text)
-            if mundo in empatados:
-                winner = mundo
+            worlds = ANSWER_TO_WORLD.get(answer_text, [])
+
+            for w in worlds:
+                if w in empatados:
+                    winner = w
+                    break
+
+            if winner:
                 break
 
-        # Salvar resultado
+        # Salvar resultado final
         QuizRepository.save_quiz_result(db, user_id, quiz_id, winner)
 
-        # Depois de calcular 'winner' e salvar no banco
         world_id = WORLD_TO_ID.get(winner)
-
         image_url = f"https://fotoai-picbrand.s3.sa-east-1.amazonaws.com/quiz/{world_id}.png"
 
         return {
             "result": winner,
             "image_url": image_url
         }
+
+    # ------------------------------- BATCH MODE -------------------------------
 
     def save_answers_batch(db, attempt_id, user_id, data):
         attempt = QuizRepository.get_attempt(db, attempt_id, user_id)
@@ -104,8 +109,12 @@ class QuizService:
 
         return {"message": "Respostas salvas com sucesso"}
 
+    # ------------------------------- START ATTEMPT -------------------------------
+
     def start_attempt(db, user_id, quiz_id):
         return QuizRepository.create_attempt(db, user_id, quiz_id)
+
+    # ------------------------------- FINISH ATTEMPT -------------------------------
 
     def finish_attempt(db, attempt_id, user_id):
 
@@ -122,25 +131,46 @@ class QuizService:
 
         world_points = {}
 
+        # Soma de pontos considerando múltiplos mundos
         for ans in answers:
-            world = ANSWER_TO_WORLD.get(ans.answer.text)
-            if world:
-                world_points[world] = world_points.get(world, 0) + 1
+            answer_text = ans.answer.text
+            worlds = ANSWER_TO_WORLD.get(answer_text, [])
 
+            for w in worlds:
+                world_points[w] = world_points.get(w, 0) + 1
+
+        # Verificar maior pontuação
         max_points = max(world_points.values())
-        tied = [w for w, p in world_points.items() if p == max_points]
+        empatados = [w for w, p in world_points.items() if p == max_points]
 
-        # desempate: primeira resposta da attempt
+        # Desempate pela ordem REAL
+        winner = None
+
         for ans in answers:
-            world = ANSWER_TO_WORLD.get(ans.answer.text)
-            if world in tied:
-                winner = world
+            answer_text = ans.answer.text
+            worlds = ANSWER_TO_WORLD.get(answer_text, [])
+
+            for w in worlds:
+                if w in empatados:
+                    winner = w
+                    break
+
+            if winner:
                 break
 
-        # MARCA attempt como finalizada
+        print("DEBUG -----------------------------------")
+        for ans in answers:
+            print(
+                "ID:", ans.answer.id,
+                " | TEXTO:", ans.answer.text,
+                " | MUNDOS:", ANSWER_TO_WORLD.get(ans.answer.text)
+            )
+        print("DEBUG -----------------------------------")
+
+        # Finaliza tentativa
         QuizRepository.finish_attempt(db, attempt_id)
 
-        # SALVA O RESULTADO NA user_quiz_results
+        # Salva resultado final
         QuizRepository.save_quiz_result(
             db=db,
             user_id=user_id,
@@ -148,15 +178,10 @@ class QuizService:
             result=winner
         )
 
-        # Depois de calcular 'winner' e salvar no banco
         world_id = WORLD_TO_ID.get(winner)
-
         image_url = f"https://fotoai-picbrand.s3.sa-east-1.amazonaws.com/quiz/{world_id}.png"
 
         return {
             "result": winner,
             "image_url": image_url
         }
-
-
-

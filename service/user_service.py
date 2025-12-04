@@ -4,7 +4,6 @@ from config.security import create_access_token
 from fastapi import HTTPException, status
 
 class UserService:
-
     @staticmethod
     def create_user(db: Session, name: str, email: str):
         existing = UserRepository.get_by_email(db, email)
